@@ -109,8 +109,102 @@ Define os metadados e todos os campos configuráveis que aparecem no painel dire
 
 Os valores configurados pelo lojista chegam no `Render.vue` via prop `configuration`. O campo `"id": "content.count"` resulta em `configuration.content.count`.
 
-**Seções disponíveis:** `content`, `style`, `layout`  
-**Tipos de campo:** `text`, `textarea`, `number`, `boolean`, `select`, `color`, `range`, `media`
+**Seções:** `content`, `style` e `layout` são nativas (viram abas no painel). Qualquer outra string vira uma aba com aquele nome — este widget usa `"section": "Cards manuais"`.
+
+**Tipos de campo:** `text`, `textarea`, `wysiwyg`, `number`, `boolean`, `select`, `color`, `range`, `media`, `repeater`
+
+| Chave extra | Vale para | Para quê |
+|---|---|---|
+| `options` | `select` | `[{ "label": "...", "value": "..." }]` |
+| `min` / `max` / `step` | `range` | Intervalo do slider (sem isso vira 0–100) |
+| `subFields` | `repeater` | Campos de cada item da lista |
+| `itemLabel` | `repeater` | Cabeçalho de cada item: "Card 1", "Card 2" |
+| `maxItems` | `repeater` | Limite de itens (sem isso, ilimitado) |
+
+### Campo `media` — seletor da biblioteca de mídia
+
+Troca o campo de texto onde o lojista colava URL na mão por um seletor que abre a biblioteca
+de mídia da loja (e ainda deixa escolher o formato: thumb/small/medium/large).
+
+```json
+{
+  "id": "content.fallbackImage",
+  "label": "Imagem padrão",
+  "type": "media",
+  "defaultValue": "",
+  "section": "content"
+}
+```
+
+O valor gravado é **uma string com a URL** — igual ao que um campo `text` guardaria. Por isso
+migrar `text` → `media` num widget que já está em produção não quebra nada:
+
+```js
+const fallbackImage = computed(() => props.configuration?.content?.fallbackImage || '')
+```
+
+### Campo `repeater` — lista de itens
+
+Substitui o padrão antigo de `textarea` com uma linha por item e `|` separando os campos.
+
+```json
+{
+  "id": "content.manualCards",
+  "label": "Cards manuais",
+  "type": "repeater",
+  "section": "Cards manuais",
+  "itemLabel": "Card",
+  "maxItems": 3,
+  "defaultValue": [],
+  "subFields": [
+    { "id": "image", "label": "Imagem", "type": "media", "defaultValue": "" },
+    { "id": "title", "label": "Título", "type": "text",  "defaultValue": "" },
+    { "id": "href",  "label": "Link",   "type": "text",  "defaultValue": "/" }
+  ]
+}
+```
+
+O valor gravado é um **array de objetos**, com uma chave por `subFields[].id`:
+
+```json
+{ "content": { "manualCards": [
+  { "image": "https://.../promo.jpg", "title": "Promoções", "href": "/promos" }
+] } }
+```
+
+Regras que o painel impõe:
+
+- **`subFields[].id` é chave literal, não caminho.** Use `image`, nunca `content.image`.
+- **Não existe repeater dentro de repeater.** Sub-campo só aceita tipo simples — inclusive `media`.
+- **Item novo só nasce com os sub-campos que têm `defaultValue`.** Sem ele a chave nem existe, então o render tem que tolerar `undefined`.
+- `defaultValue` do repeater só aparece enquanto o lojista não mexeu na lista; no primeiro add/remove o array real substitui tudo.
+
+Lendo no `Render.vue` — nunca confie no formato, é JSON gravado:
+
+```js
+const manualCards = computed(() => {
+  const raw = props.configuration?.content?.manualCards
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((item) => ({
+      title: String(item?.title ?? '').trim(),
+      href:  String(item?.href  ?? '').trim() || '/',
+      image: String(item?.image ?? '').trim(),
+    }))
+    .filter((item) => item.title || item.image)
+})
+```
+
+> **Cuidado ao migrar um widget que já está publicado:** trocar o `type` de um campo **não
+> converte o que já está gravado**. Quem tinha `textarea` continua com string no layout
+> publicado, e o painel do repeater ignora valor que não é array. Sem ler os dois formatos, a
+> loja do lojista fica vazia até ele reeditar a lista na mão:
+>
+> ```js
+> if (Array.isArray(raw)) return raw.map(/* formato novo */)
+> if (typeof raw === 'string') return parseOldLines(raw)   // compatibilidade
+> return []
+> ```
 
 ### `Render.vue` — o componente real
 

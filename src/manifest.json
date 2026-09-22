@@ -1,16 +1,16 @@
 {
   "name": "category-grid-custom",
   "title": "Category Grid",
-  "description": "Exibe até 3 categorias em cards com imagem full-size, overlay e efeito de zoom.",
+  "description": "Exibe até 3 categorias em cards com imagem full-size, overlay e efeito de zoom. Aceita cards manuais com imagem da biblioteca de mídia.",
   "category": "Commerce",
   "icon": "grid",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "allowMultiple": false,
   "supportedPageTypes": ["HOME", "CONTENT"],
   "fields": [
     {
       "id": "content.count",
-      "label": "Número de categorias",
+      "label": "Número de cards",
       "type": "range",
       "defaultValue": 3,
       "section": "content",
@@ -22,7 +22,8 @@
       "label": "Apenas categorias em destaque",
       "type": "boolean",
       "defaultValue": true,
-      "section": "content"
+      "section": "content",
+      "description": "Vale para os cards vindos do catálogo. Card manual sempre aparece."
     },
     {
       "id": "content.buttonText",
@@ -30,6 +31,44 @@
       "type": "text",
       "defaultValue": "Compre agora",
       "section": "content"
+    },
+    {
+      "id": "content.fallbackImage",
+      "label": "Imagem padrão",
+      "type": "media",
+      "defaultValue": "",
+      "section": "content",
+      "description": "Usada quando a categoria não tem imagem própria. Vazio = placeholder cinza."
+    },
+    {
+      "id": "content.manualCards",
+      "label": "Cards manuais",
+      "type": "repeater",
+      "section": "Cards manuais",
+      "itemLabel": "Card",
+      "maxItems": 3,
+      "defaultValue": [],
+      "description": "Entram antes dos cards do catálogo. Vazio = só catálogo.",
+      "subFields": [
+        {
+          "id": "image",
+          "label": "Imagem",
+          "type": "media",
+          "defaultValue": ""
+        },
+        {
+          "id": "title",
+          "label": "Título",
+          "type": "text",
+          "defaultValue": ""
+        },
+        {
+          "id": "href",
+          "label": "Link",
+          "type": "text",
+          "defaultValue": "/"
+        }
+      ]
     },
     {
       "id": "style.gap",

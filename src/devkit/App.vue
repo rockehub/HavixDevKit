@@ -104,8 +104,22 @@ function clearCart() {
 // ── Widget props (edite aqui para testar diferentes configurações) ─────────────
 
 const configuration = ref({
-  content: { count: 3, featuredOnly: true, buttonText: 'Compre agora' },
-  style:   { gap: 4 },
+  content: {
+    count: 3,
+    featuredOnly: true,
+    buttonText: 'Compre agora',
+
+    // Campo `media`: no builder vira um seletor da biblioteca de mídia da loja;
+    // aqui é só a URL que ele gravaria.
+    fallbackImage: '',
+
+    // Campo `repeater`: array de objetos, uma chave por subFields[].id.
+    // Descomente um item pra ver o card manual entrando antes do catálogo.
+    manualCards: [
+      // { image: 'https://placehold.co/800x960/1d4ed8/ffffff?text=Promo', title: 'Promoções', href: '/promos' },
+    ],
+  },
+  style: { gap: 4 },
 })
 
 const page = ref({
