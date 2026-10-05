@@ -20,7 +20,11 @@
         :href="card.href"
         class="hxcg__card"
         :style="{ '--i': i }"
+        @click="rememberClick(card)"
       >
+        <!-- Badge do último card clicado (vem do useHavixStorage) -->
+        <span v-if="card.key === lastClicked" class="hxcg__badge">Visto por último</span>
+
         <!-- Image layer -->
         <figure class="hxcg__figure">
           <img
@@ -52,7 +56,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useHavixApi } from './host/index'
+import { useHavixApi, useHavixStorage } from './host/index'
 
 const props = defineProps({
   configuration: { type: Object, default: () => ({}) },
@@ -62,6 +66,19 @@ const props = defineProps({
 
 const api     = useHavixApi()
 const loading = ref(true)
+
+// ── useHavixStorage ───────────────────────────────────────────────────────────
+// localStorage/sessionStorage direto é recusado no upload (analisador de widgets). O storage do host isola as
+// chaves deste widget pelo namespace, aceita JSON (até 8 KB por valor, 50 chaves) e expira sozinho com ttlSeconds.
+// Sem storage disponível (navegação privada, SSR) get devolve null e set devolve false: o widget segue funcionando.
+// No devkit os dados ficam em memória (somem ao recarregar); na loja ficam no navegador do visitante.
+const storage     = useHavixStorage('category-grid')
+const lastClicked = ref(storage.get('lastClicked'))
+
+function rememberClick(card) {
+  storage.set('lastClicked', card.key, { ttlSeconds: 30 * 24 * 3600 }) // 30 dias
+  lastClicked.value = card.key
+}
 const rawCats = ref([])
 
 const count        = computed(() => Math.min(3, Math.max(1, Number(props.configuration?.content?.count)       || 3)))

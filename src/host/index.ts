@@ -1,11 +1,13 @@
 import { HAVIX_HOST_VERSION } from './types'
-import { mockCartBridge, mockAuthBridge, mockB2bBridge, mockToastBridge, mockApiBridge } from './mocks'
+import { mockCartBridge, mockAuthBridge, mockB2bBridge, mockToastBridge, mockApiBridge, mockStorageBridge } from './mocks'
 import type {
   HavixCartBridge,
   HavixAuthBridge,
   HavixB2bBridge,
   HavixToastBridge,
   HavixApiBridge,
+  HavixStorageBridge,
+  HavixStorageScope,
 } from './types'
 
 export type {
@@ -31,6 +33,9 @@ export type {
   HavixQuote,
   HavixInvoice,
   HavixHostBridge,
+  HavixStorageBridge,
+  HavixStorageScope,
+  HavixStorageSetOptions,
 } from './types'
 
 function getHost() {
@@ -73,4 +78,18 @@ export function useHavixToast(): HavixToastBridge {
 export function useHavixApi(): HavixApiBridge {
   checkVersion()
   return (getHost()?.api as HavixApiBridge | undefined) ?? mockApiBridge
+}
+
+/**
+ * Armazenamento do widget (substitui o acesso direto ao storage do navegador, que o analisador recusa).
+ * O namespace isola as chaves deste widget: use um nome único, ex. o id do widget.
+ *
+ *   const storage = useHavixStorage('promo-bar')
+ *   if (!storage.get<boolean>('dismissed')) show.value = true
+ *   storage.set('dismissed', true, { ttlSeconds: 7 * 24 * 3600 })
+ */
+export function useHavixStorage(namespace: string, options?: { session?: boolean }): HavixStorageScope {
+  checkVersion()
+  const bridge = (getHost()?.storage as HavixStorageBridge | undefined) ?? mockStorageBridge
+  return bridge.scope(namespace, options)
 }

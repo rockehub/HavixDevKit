@@ -1,4 +1,12 @@
+import type { WidgetStorageBridge, WidgetStorageScope, WidgetStorageSetOptions } from './storage'
+
 export const HAVIX_HOST_VERSION = 2
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+
+export type HavixStorageBridge = WidgetStorageBridge
+export type HavixStorageScope = WidgetStorageScope
+export type HavixStorageSetOptions = WidgetStorageSetOptions
 
 // ── Cart ──────────────────────────────────────────────────────────────────────
 
@@ -264,6 +272,7 @@ export interface HavixHostBridge {
   b2b: HavixB2bBridge
   toast: HavixToastBridge
   api: HavixApiBridge
+  storage: HavixStorageBridge
 }
 
 declare global {

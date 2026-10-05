@@ -29,6 +29,7 @@ havix-category-grid/
 │   ├── host/
 │   │   ├── types.ts         # Interfaces TypeScript do contrato host ↔ widget
 │   │   ├── index.ts         # Composables: useHavixApi(), useHavixCart(), etc.
+│   │   ├── storage.ts       # Regras do useHavixStorage() (espelho do storage da loja)
 │   │   └── mocks.ts         # Implementações mock para desenvolvimento local
 │   │
 │   └── devkit/
@@ -327,6 +328,33 @@ toast.show('Produto adicionado!', 'success')
 toast.show('Erro ao processar.', 'error')
 toast.show('Atenção.', 'info')
 ```
+
+#### `useHavixStorage()` — guardar dados no navegador do visitante
+
+`localStorage`, `sessionStorage`, `indexedDB` e `document.cookie` são **recusados no upload** pelo analisador de
+widgets (eles dariam acesso ao token e ao carrinho da loja). Para lembrar algo do visitante, use o storage do host:
+
+```ts
+const storage = useHavixStorage('meu-widget')           // namespace: um nome único do seu widget
+
+storage.get<string>('lastClicked')                      // valor ou null (ausente, expirado ou sem storage)
+storage.set('lastClicked', 'cat-1')                     // true se gravou
+storage.set('dismissed', true, { ttlSeconds: 86400 })   // expira em 1 dia
+storage.remove('dismissed')
+storage.keys()                                          // chaves deste namespace
+storage.clear()                                         // apaga só as chaves deste namespace
+
+const tab = useHavixStorage('meu-widget', { session: true })  // some ao fechar a aba
+```
+
+- O widget só enxerga as chaves do próprio namespace (gravadas como `havix:widget:<namespace>:<chave>`); nunca as
+  da loja nem as de outro widget. Namespace e chave: letras, números, `.`, `_` e `-` (a chave aceita também `:`).
+- Valores em JSON, até **8 KB** cada e **50 chaves** por namespace; `set` devolve `false` quando passa do limite,
+  quando o valor não é serializável ou quando o navegador recusa (cota, navegação privada).
+- Sem storage disponível (SSR, navegador bloqueando) nada quebra: `get` devolve `null` e `set` devolve `false`.
+  Trate o `null` como "primeira visita".
+- No devkit os dados ficam **em memória** (somem ao recarregar a página); na loja ficam no navegador do visitante.
+- Exemplo real: o `Render.vue` deste repo marca com "Visto por último" o card que o visitante clicou (30 dias).
 
 ---
 

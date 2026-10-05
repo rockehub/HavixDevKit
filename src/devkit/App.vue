@@ -43,20 +43,24 @@ import {
   mockAuthBridge,
   mockB2bBridge,
   mockToastBridge,
+  mockApiBridge,
+  mockStorageBridge,
   seedAuth,
   seedCart,
   seedB2b,
 } from '../host/mocks'
-import type { HavixHostBridge } from '../host/types'
+import { HAVIX_HOST_VERSION, type HavixHostBridge } from '../host/types'
 
 // Popula window.__HAVIX_HOST__ com mocks ANTES de Render.vue montar
 onBeforeMount(() => {
   ;(window as Window).__HAVIX_HOST__ = {
-    version: 1,
-    cart:  mockCartBridge,
-    auth:  mockAuthBridge,
-    b2b:   mockB2bBridge,
-    toast: mockToastBridge,
+    version: HAVIX_HOST_VERSION,
+    cart:    mockCartBridge,
+    auth:    mockAuthBridge,
+    b2b:     mockB2bBridge,
+    toast:   mockToastBridge,
+    api:     mockApiBridge,
+    storage: mockStorageBridge,
   } satisfies HavixHostBridge
 })
 

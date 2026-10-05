@@ -15,6 +15,7 @@ import type {
   HavixOrderSummary,
   HavixAddress,
 } from './types'
+import { createMemoryWidgetStorage } from './storage'
 
 // ── Cart ──────────────────────────────────────────────────────────────────────
 
@@ -327,3 +328,8 @@ export const mockApiBridge: HavixApiBridge = {
 function delay(ms: number) {
   return new Promise<void>(r => setTimeout(r, ms))
 }
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+// Em memória: mesmas regras do storage da loja (namespace, 8 KB, 50 chaves, TTL), mas some ao recarregar.
+
+export const mockStorageBridge = createMemoryWidgetStorage()
